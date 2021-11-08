@@ -4,7 +4,7 @@
 
 library (splines)
 
-load ("~/Dropbox/EmoryCourses/BIOS_526/Materials_BRisk_2020/Data/NYC.RData")
+load ("Data/NYC.RData")
 
 str (health)
 
@@ -287,9 +287,9 @@ y2 <- predict(fit.reml, newd)
 # visually check whether this is consistent with the plot
 
 newd <- health[1, ] # grab any row; we are going to change temperature only
-newd$Temp <- 90 - 1e-05 # subtract some small number
+newd$Temp <- 85 - 1e-05 # subtract some small number
 y1 <- predict(fit.reml, newd)
-newd$Temp <- 90 + 1e-05 # add some small number
+newd$Temp <- 85 + 1e-05 # add some small number
 y2 <- predict(fit.reml, newd)
 (y2 - y1)/2e-05
 # visually check whether this is consistent with the plot
@@ -297,7 +297,7 @@ y2 <- predict(fit.reml, newd)
 
 
 ##### GAMM (here, Gaussian)
-nepal = read.csv('~/Dropbox/EmoryCourses/BIOS_526/Materials_BRisk_2020/Data/Nepal.csv')
+nepal = read.csv('Data/Nepal.csv')
 library(lme4)
 
 nepal$arm[ nepal$arm == 99.9] = NA
@@ -312,10 +312,15 @@ fit = lmer (arm~ age + (1|id), data = nepal)
 summary(fit)
 
 # Now fit the model with possibly non-linear effects of age:
-fit.gamm = gam(arm~s(age)+s(id,bs = 're'),data=nepal)
+fit.gamm = gam(arm~s(age)+s(id,bs = 're'),method='REML',data=nepal)
 gam.check(fit.gamm)
 summary(fit.gamm)
+plot(fit.gamm)
 
+fit.gamm.k20 = gam(arm~s(age,k=20)+s(id,bs='re'),method='REML',data=nepal)
+gam.check(fit.gamm.k20)
+# edf increase to 8.5, but this isn't a huge change. either model okay. 
+plot(fit.gamm.k20)
 
 AIC(fit)
 AIC(fit.gamm) # much better fit
@@ -324,12 +329,10 @@ plot(fit.gamm)
 
 library(itsadug)
 plot_smooth(fit.gamm,view='age',rm.ranef=TRUE)
-# I like how this plot includes the intercept.
-
 
 # plot the first few random effects alongside the mean trend:
 myylim=c(9,18)
-plot_smooth(fit.gamm.reml,view='age',cond=list(id=10),col='orange',ylim=myylim)
-plot_smooth(fit.gamm.reml,view='age',cond=list(id=40),col='red',add=TRUE,ylim=myylim)
-plot_smooth(fit.gamm.reml,view='age',cond=list(id=120),col='purple',add=TRUE,ylim=myylim)
-plot_smooth(fit.gamm.reml,view='age',cond=list(id=50),col='turquoise',add=TRUE,ylim=myylim)
+plot_smooth(fit.gamm,view='age',cond=list(id=10),col='orange',ylim=myylim,rm.ranef=FALSE)
+plot_smooth(fit.gamm,view='age',cond=list(id=40),col='red',add=TRUE,ylim=myylim,rm.ranef=FALSE)
+plot_smooth(fit.gamm,view='age',cond=list(id=120),col='purple',add=TRUE,ylim=myylim,rm.ranef=FALSE)
+plot_smooth(fit.gamm,view='age',cond=list(id=50),col='turquoise',add=TRUE,ylim=myylim,rm.ranef=FALSE)
